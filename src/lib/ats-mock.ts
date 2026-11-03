@@ -8,7 +8,7 @@ export type AnalysisResult = {
 const STOPWORDS = new Set(
   "a o e de da do das dos em para com por um uma os as no na nos nas que se ao à é ser como mais ou seu sua the and of to in for with on at by an be is are you we our your will this that from experiência vaga empresa trabalho área".split(
     " ",
-  ),
+  ).map((w) => w.normalize("NFD").replace(/[\u0300-\u036f]/g, "")),
 );
 
 function normalize(s: string) {
@@ -49,5 +49,11 @@ export function analyzeMock(job: string, resume: string): AnalysisResult {
     : "";
   const skills = found.length ? `\n\nCOMPETÊNCIAS PRINCIPAIS\n${found.map((f) => `- ${f}`).join("\n")}` : "";
 
-  return { score, found, missing, optimizedResume: `${summary}${lines.join("\n")}${skills}`.trim() };
+  // Keep the header (name/contact: lines before the first blank) on top.
+  const blank = lines.indexOf("");
+  const header = blank > 0 && blank <= 4 ? lines.slice(0, blank) : [];
+  const body = header.length ? lines.slice(blank + 1) : lines;
+  const head = header.length ? `${header.join("\n")}\n\n` : "";
+
+  return { score, found, missing, optimizedResume: `${head}${summary}${body.join("\n")}${skills}`.trim() };
 }
