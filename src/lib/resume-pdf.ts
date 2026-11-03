@@ -40,7 +40,7 @@ export async function downloadResumePdf(text: string, filename = "curriculo-otim
       for (let i = 0; i < wrapped.length; i++) {
         ensure(15);
         if (i === 0) doc.text("•", M + 2, y);
-        doc.text(wrapped[i], M + 14, y);
+        doc.text(wrapped[i] ?? "", M + 14, y);
         y += 14.5;
       }
     } else if (first) {
