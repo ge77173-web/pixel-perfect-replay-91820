@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Copy, FileDown, Loader2, Paperclip, ShieldCheck, Sparkles } from "lucide-react";
+import { downloadResumePdf } from "@/lib/resume-pdf";
 import { ACCEPTED_FILES, extractTextFromFile } from "@/lib/file-extract";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -79,17 +80,10 @@ function Index() {
     toast.success("Texto copiado!");
   };
 
-  const exportPdf = () => {
+  const exportPdf = async () => {
     if (!result) return;
-    const w = window.open("", "_blank");
-    if (!w) return;
-    const esc = result.optimizedResume.replace(/&/g, "&amp;").replace(/</g, "&lt;");
-    w.document.write(
-      `<html><head><title>Curriculo</title></head><body style="font-family:Arial,sans-serif;font-size:12pt;line-height:1.5;margin:2cm"><pre style="white-space:pre-wrap;font-family:inherit">${esc}</pre></body></html>`,
-    );
-    w.document.close();
-    w.focus();
-    w.print();
+    await downloadResumePdf(result.optimizedResume);
+    toast.success("PDF baixado!");
   };
 
   return (
