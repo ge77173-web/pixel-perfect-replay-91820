@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Copy, FileDown, Loader2, ShieldCheck, Sparkles } from "lucide-react";
+import { Copy, FileDown, Loader2, Paperclip, ShieldCheck, Sparkles } from "lucide-react";
+import { ACCEPTED_FILES, extractTextFromFile } from "@/lib/file-extract";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +25,34 @@ export const Route = createFileRoute("/")({
   }),
   component: Index,
 });
+
+function AttachButton({ onText }: { onText: (t: string) => void }) {
+  const [busy, setBusy] = useState(false);
+  const handle = async (file?: File) => {
+    if (!file) return;
+    setBusy(true);
+    try {
+      const text = await extractTextFromFile(file);
+      if (!text) throw new Error("vazio");
+      onText(text);
+      toast.success(`Texto extraído de ${file.name}`);
+    } catch {
+      toast.error("Não foi possível ler este arquivo.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Button variant="outline" size="sm" asChild disabled={busy}>
+      <label className="cursor-pointer">
+        {busy ? <Loader2 className="animate-spin" /> : <Paperclip />}
+        {busy ? "Lendo arquivo..." : "Anexar arquivo"}
+        <input type="file" accept={ACCEPTED_FILES} className="hidden" disabled={busy}
+          onChange={(e) => { handle(e.target.files?.[0]); e.target.value = ""; }} />
+      </label>
+    </Button>
+  );
+}
 
 function Index() {
   const [job, setJob] = useState("");
@@ -84,16 +113,24 @@ function Index() {
 
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
-            <CardHeader>
-              <CardTitle>Descrição da vaga</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
+              <div className="space-y-1.5">
+                <CardTitle>Descrição da vaga</CardTitle>
+                <CardDescription>Cole o texto ou anexe PDF, Word, TXT ou foto</CardDescription>
+              </div>
+              <AttachButton onText={setJob} />
             </CardHeader>
             <CardContent>
               <Textarea value={job} onChange={(e) => setJob(e.target.value)} placeholder="Cole a descrição da vaga aqui..." className="min-h-72" />
             </CardContent>
           </Card>
           <Card>
-            <CardHeader>
-              <CardTitle>Seu currículo</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
+              <div className="space-y-1.5">
+                <CardTitle>Seu currículo</CardTitle>
+                <CardDescription>Cole o texto ou anexe PDF, Word, TXT ou foto</CardDescription>
+              </div>
+              <AttachButton onText={setResume} />
             </CardHeader>
             <CardContent>
               <Textarea value={resume} onChange={(e) => setResume(e.target.value)} placeholder="Cole o seu currículo atual aqui..." className="min-h-72" />
